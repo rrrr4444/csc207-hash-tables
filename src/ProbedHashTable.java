@@ -67,7 +67,7 @@ public class ProbedHashTable<K,V> implements HashTable<K,V> {
 
   /**
    * The offset to use in linear probes. (We choose a prime because that helps
-   * ensure that we cover all of the spaces.)
+   * ensure that we cover all the spaces.)
    */
   static final double PROBE_OFFSET = 17;
 
@@ -99,7 +99,7 @@ public class ProbedHashTable<K,V> implements HashTable<K,V> {
 
   /**
    * Our helpful random number generator, used primarily when expanding the size
-   * of the table..
+   * of the table.
    */
   Random rand;
 
@@ -168,7 +168,11 @@ public class ProbedHashTable<K,V> implements HashTable<K,V> {
       if (REPORT_BASIC_CALLS && (reporter != null)) {
         reporter.report("get(" + key + ") => " + pair.value());
       } // if reporter != null
-      return pair.value();
+      if (pair.key().equals(key)) {
+        return pair.value();
+      } else {
+        return null;
+      }
     } // get
   } // get(K)
 
@@ -191,7 +195,6 @@ public class ProbedHashTable<K,V> implements HashTable<K,V> {
   /**
    * Set a value.
    */
-  @SuppressWarnings("unchecked")
   public V set(K key, V value) {
     V result = null;
     // If there are too many entries, expand the table.
@@ -203,7 +206,7 @@ public class ProbedHashTable<K,V> implements HashTable<K,V> {
     if (this.pairs[index] != null) {
       result = ((Pair<K,V>) this.pairs[index]).value();
     } // if
-    this.pairs[index] = new Pair<K,V>(key, value);
+    this.pairs[index] = new Pair<>(key, value);
     // Report activity, if appropriate
     if (REPORT_BASIC_CALLS && (reporter != null)) {
       reporter.report("pairs[" + index + "] = " + key + ":" + value);
@@ -321,7 +324,11 @@ public class ProbedHashTable<K,V> implements HashTable<K,V> {
    * return the index of an entry we can use to store that key.
    */
   int find(K key) {
-    return Math.abs(key.hashCode()) % this.pairs.length;
+    int hashCode = Math.abs(key.hashCode()) % this.pairs.length;
+    while (this.pairs[hashCode] != null || (this.pairs[hashCode]) != null && !((Pair<K, V>) this.pairs[hashCode]).key().equals(key)) {
+      hashCode += (int) (PROBE_OFFSET % this.pairs.length);
+    } // while
+    return hashCode;
   } // find(K)
 
 } // class ProbedHashTable<K,V>
